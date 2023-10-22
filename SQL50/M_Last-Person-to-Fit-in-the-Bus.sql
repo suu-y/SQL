@@ -1,22 +1,35 @@
 # Write your MySQL query statement below
-WITH orderd_t AS(
+WITH RECURSIVE cte AS (
     SELECT
-        turn, person_id, person_name, weight,
-        weight + lag(weight, 1) over (ORDER BY turn) AS sum_rec
+        turn,
+        person_id,
+        person_name,
+        weight,
+        weight AS sum_rec
     FROM
         Queue
-    ORDER BY
-        turn
-), calc_t AS(
+    WHERE
+        turn = 1
+    UNION ALL
     SELECT
-        turn, person_id, person_name, weight, sum_rec,
-        sum_rec 
-        + (lag(sum_rec, 1) over (ORDER BY turn))
-        - (lag(weight, 1) over (ORDER BY turn)) AS total
+        t.turn,
+        t.person_id,
+        t.person_name,
+        t.weight,
+        t.weight + c.sum_rec AS sum_rec
     FROM
-        orderd_t
+        Queue t
+    INNER JOIN
+        cte c
+        ON t.turn = c.turn + 1
 )
 SELECT
-    *
+    person_name AS person_name
 FROM
-    calc_t
+    cte
+WHERE
+    sum_rec <= 1000
+ORDER BY
+    sum_rec DESC
+LIMIT
+    1
