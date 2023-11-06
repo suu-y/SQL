@@ -1,4 +1,3 @@
--- まだ途中
 # Write your MySQL query statement below
 WITH Lowest_t AS(
     SELECT
@@ -22,17 +21,26 @@ WITH Lowest_t AS(
     LIMIT 1
 ), Average_t AS(
     SELECT DISTINCT
-        movie_id,
+        MovieRating.movie_id,
         -- user_id,
         -- rating AS highest_avg_rate,
-        -- created_at,
-        t2.name
+        created_at,
+        t2.name,
+        Movies.title
     FROM
         MovieRating
         CROSS JOIN t2
+        INNER JOIN Movies
+            ON MovieRating.movie_id = Movies.movie_id
     WHERE
-        movie_id = (SELECT movie_id FROM MovieRating WHERE created_at BETWEEN '2020-02-01' AND '2020-02-28' GROUP BY movie_id HAVING created_at BETWEEN '2020-02-01' AND '2020-02-28' ORDER BY AVG(rating) DESC, t2.name LIMIT 1)
-
+        created_at BETWEEN '2020-02-01' AND '2020-02-28'
+    GROUP BY
+        movie_id
+    HAVING
+        created_at BETWEEN '2020-02-01' AND '2020-02-28'
+    ORDER BY
+        AVG(MovieRating.rating) DESC, Movies.title
+    LIMIT 1
 ), t3 AS(
     SELECT
         Movies.title,
