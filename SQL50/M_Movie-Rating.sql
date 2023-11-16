@@ -22,8 +22,6 @@ WITH Lowest_t AS(
 ), Average_t AS(
     SELECT DISTINCT
         MovieRating.movie_id,
-        -- user_id,
-        -- rating AS highest_avg_rate,
         created_at,
         t2.name,
         Movies.title
@@ -35,9 +33,7 @@ WITH Lowest_t AS(
     WHERE
         created_at BETWEEN '2020-02-01' AND '2020-02-28'
     GROUP BY
-        movie_id
-    HAVING
-        created_at BETWEEN '2020-02-01' AND '2020-02-28'
+        MovieRating.movie_id
     ORDER BY
         AVG(MovieRating.rating) DESC, Movies.title
     LIMIT 1
