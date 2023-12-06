@@ -8,7 +8,7 @@ WITH unique_t AS(
 SELECT
     sell_date,
     COUNT(*) AS num_sold,
-    GROUP_CONCAT(product ORDER BY product ASC) AS products
+    GROUP_CONCAT(product ORDER BY product) AS products
 FROM
     unique_t
 GROUP BY
