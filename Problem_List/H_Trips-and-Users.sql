@@ -13,7 +13,7 @@ WITH banned_user AS(
         Trips
     WHERE
         Trips.request_at BETWEEN '2013-10-01' AND '2013-10-03'
-)
+), with_null AS(
     SELECT DISTINCT
         date_t.request_at AS 'Day',
         ROUND(SUM(IF(date_t.status LIKE 'cancelled%' AND date_t.client_id = banned_user.users_id, 1, 0)) OVER (PARTITION BY date_t.request_at)
@@ -26,4 +26,13 @@ WITH banned_user AS(
                 OR
                 date_t.driver_id = banned_user.users_id
             )
-        
+)
+SELECT
+    Day,
+    Cancellation AS 'Cancellation Rate'
+FROM
+    with_null
+GROUP BY
+    1, 2
+HAVING
+    SUM(Cancellation) > 0
