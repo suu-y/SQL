@@ -1,38 +1,37 @@
 # Write your MySQL query statement below
-WITH banned_user AS(
+WITH ValidClients AS(
     SELECT
-        users_id
+        users_id AS valid_client_id
     FROM
         Users
     WHERE
         banned = 'No'
-), date_t AS(
+        AND
+        role = 'client'
+), ValidDrivers AS(
+    SELECT
+        users_id AS valid_driver_id
+    FROM
+        Users
+    WHERE
+        banned = 'No'
+        AND
+        role = 'driver'
+), OctoberTrips AS(
     SELECT
         *
     FROM
         Trips
     WHERE
         Trips.request_at BETWEEN '2013-10-01' AND '2013-10-03'
-), with_null AS(
-    SELECT DISTINCT
-        date_t.request_at AS 'Day',
-        ROUND(SUM(IF(date_t.status LIKE 'cancelled%' AND date_t.client_id = banned_user.users_id, 1, 0)) OVER (PARTITION BY date_t.request_at)
-            / SUM(IF(date_t.client_id = banned_user.users_id, 1, 0)) OVER (PARTITION BY date_t.request_at), 2) AS Cancellation
-    FROM
-        date_t
-        LEFT OUTER JOIN banned_user
-            ON(
-                date_t.client_id = banned_user.users_id
-                OR
-                date_t.driver_id = banned_user.users_id
-            )
 )
-SELECT
-    Day,
-    Cancellation AS 'Cancellation Rate'
+SELECT DISTINCT
+    OctoberTrips.request_at AS 'Day',
+    ROUND(SUM(IF(OctoberTrips.status LIKE 'cancelled%', 1, 0)) OVER (PARTITION BY OctoberTrips.request_at)
+        / SUM(1) OVER (PARTITION BY OctoberTrips.request_at), 2) AS 'Cancellation Rate'
 FROM
-    with_null
-GROUP BY
-    1, 2
-HAVING
-    SUM(Cancellation) > 0
+    OctoberTrips
+    INNER JOIN ValidClients
+        ON  OctoberTrips.client_id = ValidClients.valid_client_id
+    INNER JOIN ValidDrivers
+        ON  OctoberTrips.driver_id = ValidDrivers.valid_driver_id
